@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modern Task Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <h1 class="logo">Task<span></span></h1>
+    <span class="date-badge" id="today-date"></span>
+  </header>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-label">
+      <span>Today's progress</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-label">Total</span>
+      <span class="stat-val accent" id="stat-total">0</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Done</span>
+      <span class="stat-val green" id="stat-done">0</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Pending</span>
+      <span class="stat-val" id="stat-pending">0</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Overdue</span>
+      <span class="stat-val amber" id="stat-overdue">0</span>
+    </div>
+  </div>
+
+  <!-- Add Task -->
+  <div class="input-section">
+    <div class="input-row">
+      <input class="task-input" id="task-input" type="text" placeholder="Add a new task…" autocomplete="off">
+      <button class="btn" onclick="addTask()">
+        <i class="ti ti-plus" aria-hidden="true"></i> Add task
+      </button>
+    </div>
+    <div class="meta-row">
+      <select class="meta-select" id="new-category" title="Category">
+        <option value="work">💼 Work</option>
+        <option value="personal">🏠 Personal</option>
+        <option value="health">💪 Health</option>
+        <option value="finance">💰 Finance</option>
+        <option value="other">📌 Other</option>
+      </select>
+      <select class="meta-select" id="new-priority" title="Priority">
+        <option value="high">🔴 High</option>
+        <option value="medium" selected>🟡 Medium</option>
+        <option value="low">🟢 Low</option>
+      </select>
+      <input class="date-input" id="new-due" type="date" title="Due date">
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <button class="filter-pill active" data-filter="all" onclick="setFilter('all',this)">All</button>
+    <button class="filter-pill" data-filter="active" onclick="setFilter('active',this)">Active</button>
+    <button class="filter-pill" data-filter="done" onclick="setFilter('done',this)">Done</button>
+    <div class="filter-sep"></div>
+    <button class="filter-pill" data-filter="high" onclick="setFilter('high',this)">🔴 High</button>
+    <button class="filter-pill" data-filter="medium" onclick="setFilter('medium',this)">🟡 Medium</button>
+    <button class="filter-pill" data-filter="low" onclick="setFilter('low',this)">🟢 Low</button>
+    <div class="filter-sep"></div>
+    <button class="filter-pill" data-filter="overdue" onclick="setFilter('overdue',this)">Overdue</button>
+    <div class="search-wrap">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input class="search-input" id="search" type="text" placeholder="Search tasks…" oninput="render()">
+    </div>
+  </div>
+
+  <!-- Task list -->
+  <div>
+    <div class="section-heading" id="list-heading">Tasks</div>
+    <div style="height: 12px;"></div>
+    <div class="task-list" id="task-list"></div>
+    <div class="empty-state" id="empty-state" style="display:none;">
+      <div class="empty-icon"><i class="ti ti-clipboard" aria-hidden="true"></i></div>
+      <p class="empty-title">No tasks here</p>
+      <p class="empty-sub">Add a task above to get started.</p>
+    </div>
+  </div>
+
+  <!-- Clear completed -->
+  <div style="display:flex; justify-content:flex-end;">
+    <button class="btn btn-ghost" onclick="clearDone()">
+      <i class="ti ti-trash" aria-hidden="true"></i> Clear completed
+    </button>
+  </div>
+
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-backdrop" id="modal" onclick="closeModal(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title-el">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title-el">Edit task</span>
+      <button class="icon-btn" onclick="closeModalDirect()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="field">
+      <p class="modal-label">Task name</p>
+      <input class="modal-input" id="edit-name" type="text">
+    </div>
+    <div class="modal-row">
+      <div class="field">
+        <p class="modal-label">Category</p>
+        <select class="modal-input meta-select" id="edit-category" style="width:100%;">
+          <option value="work">Work</option>
+          <option value="personal">Personal</option>
+          <option value="health">Health</option>
+          <option value="finance">Finance</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <p class="modal-label">Priority</p>
+        <select class="modal-input meta-select" id="edit-priority" style="width:100%;">
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <p class="modal-label">Due date</p>
+      <input class="modal-input date-input" id="edit-due" type="date" style="width:100%;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModalDirect()">Cancel</button>
+      <button class="btn" onclick="saveEdit()"><i class="ti ti-check"></i> Save changes</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
